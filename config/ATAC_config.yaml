@@ -3,29 +3,30 @@ samplesheet: 'cqtl_atac_sample.txt'
 bam_samplesheet: 'bam_atac_CQTL_all_samplesheet.txt'
 
 ## List columns to concatenate for file names 
-fileNamesFrom: ['Proj','Donor','Condition','Tissue','Protocol_notes']
+fileNamesFrom: ['Project','Cell_Type','Condition']
 
 sample_logic:
-  Sample_handing: 'true'  # Set to 'false' to disable replicate/femur logic
+  Sample_handing: 'false'  # Set to 'false' to disable replicate/femur logic
   # Columns for building the main sample name
-  base_name_columns: ['Proj', 'Donor', 'Condition', 'Tissue']
+  base_name_columns: ['Project','Cell_Type','Condition']
   # Columns for grouping samples
   condition_column: 'Condition'
-  control_group_value: 'CTL' # Please change as needed for the name
-  treatment_group_value: 'FNF' # Please change as needed for the name
+  control_group_value: 'normal' # Please change as needed for the name
+  treatment_group_value: 'OA' # Please change as needed for the name
   # Columns for special cases (only used if Sample_handing is 'true')
-  replicate_column: 'Protocol_notes'
+  replicate_column: 'Bio_Rep'
   femur_column: 'Tissue'
   femur_donor_col: 'Donor'
 
+#This section needs to be changed to current working directory
 paths:
   outdir: atac_output
-  base_dir: '/work/users/s/e/seyoun/cQTL_caQTL'
+  base_dir: '/work/users/s/e/seyoun/atac_pipeline'
 
 bwa_index: '/users/s/e/seyoun/Ref/genome/bwa_idx/hg38'
 blacklist: '/work/users/s/e/seyoun/cQTL_caQTL/external/blacklist_region/ENCFF356LFX.bed.gz'
 tss_annotation: '/users/s/e/seyoun/Ref/genome/gencode.v45.annotation.tss.bed.gz'
-atac_qc_Rscript: '/work/users/s/e/seyoun/cQTL_caQTL/scripts/atac_workflow/atac_bamQC.R'
+atac_qc_Rscript: './scripts/utils_workflow/atac_bamQC.R'
 
 #atacqv
 tssextension: '2000'
@@ -49,7 +50,7 @@ vcf_options:
 bin_size: '10'
 effective_genome_size: '2747877702' # effective_genome_size for hg38 and 75bp read s 
 normalize_option: 'RPGC'
-chrsize: '/users/s/e/seyoun/Ref/genome/chrsize_onlychr.txt'
+chrsize: '/proj/phanstiel_lab/Reference/human/hg38/resources/hg38.chrom.filtered.sizes'
 
 #bedops 
 bedops_dir: "/users/s/e/seyoun/tools/bedops-2.4.41/bin"
