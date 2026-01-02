@@ -1,0 +1,31 @@
+printshellcmds: true
+use-envmodules: true
+rerun-incomplete: true
+latency-wait: 180
+jobs: 120
+keep-going: true
+executor: cluster-generic
+default-resources:
+  mem_mb: 4000
+
+set-resources:
+  align:
+    memPerCpu: 20G
+  trim:
+    memPerCpu: 8G
+  qualimap_bamqc:
+    memPerCpu: 20G
+  qualimap_rnaseq:
+    memPerCpu: 20G
+
+cluster-generic-submit-cmd: >-
+  sbatch
+  -J {rule}-{wildcards}
+  -p general
+  -t 3-00:00:00
+  -c {threads}
+  --mem={resources.mem_mb}M
+  -o rna_output/logs_slurm/{rule}-%j.out
+  -e rna_output/logs_slurm/{rule}-%j.err
+  --parsable
+

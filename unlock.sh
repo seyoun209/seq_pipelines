@@ -15,8 +15,8 @@ case $1 in
             echo -e '\e[31mSpecify which workflow to unlock (i.e. run_RNAprocessing)'
             exit 2
             ;;
-        '01_01_run_atac_core.sbatch')
-            snakemake -j 1 --unlock -s workflow/atac_process/00_atac_preprocess.smk --configfile config/ATAC_config.yaml --profile config/profile_slurm_atac
+        '01_run_RNA_preprocess.sbatch')
+            snakemake -j 1 --unlock -s workflow/rna_process/01_rna_preprocess.smk --configfile config/RNA_config.yaml --profile config/profile_slurm_rna
             ;;
     '01_02_run_atac_peakcall.sbatch')
             snakemake -j 1 --unlock -s workflow/atac_process/02_02_wasp_callingPeak.smk  --configfile config/ATAC_config.yaml --profile config/profile_slurm_atac

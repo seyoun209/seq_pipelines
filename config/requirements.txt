@@ -1,5 +1,6 @@
 snakemake==8.27.1
 snakemake-executor-plugin-cluster-generic
+snakemake-executor-plugin-slurm
 pandas
 kneed
 pysam
