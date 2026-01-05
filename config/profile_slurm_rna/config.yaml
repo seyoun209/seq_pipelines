@@ -17,6 +17,8 @@ set-resources:
     memPerCpu: 20G
   qualimap_rnaseq:
     memPerCpu: 20G
+  quant:
+    memPerCpu: 10G
 
 cluster-generic-submit-cmd: >-
   sbatch

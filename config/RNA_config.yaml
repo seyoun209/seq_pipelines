@@ -20,9 +20,10 @@ control: 'hESC'
 case: 'NPC' # or the Neurons
 
 ## salmon options
-salmon: '/users/s/e/seyoun/Ref/genome/salmon_idx'
-gcBias: 'TRUE'
-seqBias: 'TRUE'
+salmon: '/proj/phanstiel_lab/Reference/human/hg38/indices/annotations/salmon_gentrome.fa.gz'
+#gcBias: 'TRUE'
+#seqBias: 'TRUE'
+libtype: 'A'
 
 ## leafcutter
 regtools: '/users/s/e/seyoun/tools/regtools_v1.0.0/build/regtools'

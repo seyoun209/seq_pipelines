@@ -330,7 +330,7 @@ rule quant:
         salmonVer = config['salmonVers'],
         index = config['salmon'],
         outdir = 'rna_output/quant/{sampleName}',
-        lib_type = config.get('salmon_lib_type', 'A')
+        lib_type = config['libtype']
     log:
         out = 'rna_output/logs/salmon_{sampleName}.out',
         err = 'rna_output/logs/salmon_{sampleName}.err'
@@ -341,7 +341,7 @@ rule quant:
         """
         ml salmon/{params.salmonVer}
         mkdir -p rna_output/quant
-        salmon quant -t {params.index}/gentrome.fa -l {params.lib_type} \
+        salmon quant -t {params.index} -l {params.lib_type} \
             -a {input.transcriptome_bam} -o {params.outdir} \
             -p {threads} --seqBias --gcBias 1> {log.out} 2> {log.err}
         """
