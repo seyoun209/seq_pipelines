@@ -6,11 +6,11 @@ jobs: 120
 keep-going: true
 executor: cluster-generic
 default-resources:
-  mem_mb: 4000
+  memPerCpu: 4G
 
 set-resources:
   align:
-    memPerCpu: 20G
+    memPerCpu: 100G
   trim:
     memPerCpu: 8G
   qualimap_bamqc:
@@ -24,7 +24,7 @@ cluster-generic-submit-cmd: >-
   -p general
   -t 3-00:00:00
   -c {threads}
-  --mem={resources.mem_mb}M
+  --mem={resources.memPerCpu}
   -o rna_output/logs_slurm/{rule}-%j.out
   -e rna_output/logs_slurm/{rule}-%j.err
   --parsable

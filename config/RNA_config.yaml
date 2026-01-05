@@ -34,7 +34,7 @@ fastqcVers: "0.12.1"
 trim_galore: "0.6.7"
 pythonVers: "3.12.4"
 r: "4.5.0"
-multiqcVers: "1.14"
+multiqcVers: "1.28"
 samtoolsVers: "1.22"
 starVers: '2.7.11b'
 deeptoolsVers: "3.5.4"
