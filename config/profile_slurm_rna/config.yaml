@@ -10,13 +10,18 @@ default-resources:
 
 set-resources:
   align:
-    memPerCpu: 100G
+    threads: 4
+    memPerCpu: 120G
+  sort_index:
+    memPerCpu: 75G
   trim:
     memPerCpu: 8G
   qualimap_bamqc:
     memPerCpu: 20G
   qualimap_rnaseq:
     memPerCpu: 20G
+  quant:
+    memPerCpu: 30G
 
 cluster-generic-submit-cmd: >-
   sbatch

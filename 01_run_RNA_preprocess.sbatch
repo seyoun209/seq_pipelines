@@ -17,7 +17,7 @@ module load python/3.12.4
 ## Create and activate virtual environment with requirements
 python3 -m venv env
 source env/bin/activate && pip3 install -r config/requirements.txt
-# pip install --upgrade pip
+#pip install --upgrade pip
 
 ## Make directory for slurm logs
 mkdir -p rna_output/logs_slurm workflow_logs

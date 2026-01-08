@@ -2,7 +2,7 @@
 samplesheet: 'samplesheet.txt'
 
 ## List columns to concatenate for file names
-mergeBy: ['Proj','Condition','Bio_Rep','Tech_Rep']
+mergeBy: ["Proj","Donor","Condition","Treatment"]
 
 ## References
 gtf: '/proj/phanstiel_lab/Reference/human/hg38/annotations/gencode.v49.primary_assembly.annotation.gtf'
@@ -11,7 +11,9 @@ starsjdb: '/proj/phanstiel_lab/Reference/human/hg38/indices/star/sjdbList.fromGT
 fa: '/proj/phanstiel_lab/Reference/human/hg38/fasta/GRCh38.primary_assembly.genome.fa'
 
 ## verifyBamId version 2.0.1
-verifybamid: '/users/s/e/seyoun/tools/VerifyBamID_2.0.1/bin/VerifyBamID'
+verifybamid_bin: /users/s/e/seyoun/tools/VerifyBamID_2.0.1/bin/VerifyBamID
+verifybamid_svdprefix: /users/s/e/seyoun/tools/VerifyBamID_2.0.1/resource/1000g.phase3.100k.b38.vcf.gz.dat
+verifybamid_ref_fa: /proj/phanstiel_lab/Reference/human/hg38/fasta/GRCh38.primary_assembly.genome.fa
 
 ## rMATS options
 t: 'paired'
@@ -20,14 +22,24 @@ control: 'hESC'
 case: 'NPC' # or the Neurons
 
 ## salmon options
-salmon: '/users/s/e/seyoun/Ref/genome/salmon_idx'
-gcBias: 'TRUE'
-seqBias: 'TRUE'
+#gcBias: 'TRUE'
+#seqBias: 'TRUE'
+salmon: '/proj/phanstiel_lab/Reference/human/hg38/indices/salmon'
+libtype: 'A'
 
 ## leafcutter
 regtools: '/users/s/e/seyoun/tools/regtools_v1.0.0/build/regtools'
 leafcutter2_env: 'leafcutter2'
 leafcutter2_script: '/users/s/e/seyoun/tools/src/leafcutter2/scripts/leafcutter2.py'
+
+## featureCounts
+collapse_gtf: '/proj/phanstiel_lab/Reference/human/hg38/annotations/gencode.v49.primary_assembly.annotation.collapsed.gtf'
+featureType: 'exon'
+attrType: 'gene_id'
+
+## Deeptools
+normalize_option: 'CPM'
+bin_size: '10'
 
 ## Software versions
 fastqcVers: "0.12.1"
@@ -37,9 +49,11 @@ r: "4.5.0"
 multiqcVers: "1.28"
 samtoolsVers: "1.22"
 starVers: '2.7.11b'
-deeptoolsVers: "3.5.4"
+deeptoolsVers: "3.5.6"
 rmats-turboVers: "4.3.0"
 qualimapVers: '2.3'
 pgizVers: '2.8'
 salmonVers: "1.10.3"
 picardVers: '3.4.0'
+javaVers: '23.0.2'
+subreadVers: '2.1.1'
