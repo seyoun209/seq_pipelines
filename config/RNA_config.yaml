@@ -3,6 +3,10 @@ samplesheet: 'samplesheet.txt'
 
 ## List columns to concatenate for file names
 mergeBy: ["Proj","Donor","Condition","Treatment"]
+groupBy: ["Condition","Treatment"]
+bamDir: "/work/users/s/e/seyoun/colabs/LCSP/seq_pipelines/rna_output/align"
+bamSuffix: "_sorted.bam"
+make_strand_bw: 'TRUE'
 
 ## References
 gtf: '/proj/phanstiel_lab/Reference/human/hg38/annotations/gencode.v49.primary_assembly.annotation.gtf'
@@ -12,14 +16,16 @@ fa: '/proj/phanstiel_lab/Reference/human/hg38/fasta/GRCh38.primary_assembly.geno
 
 ## verifyBamId version 2.0.1
 verifybamid_bin: /users/s/e/seyoun/tools/VerifyBamID_2.0.1/bin/VerifyBamID
-verifybamid_svdprefix: /users/s/e/seyoun/tools/VerifyBamID_2.0.1/resource/1000g.phase3.100k.b38.vcf.gz.dat
+verifybamid_svdprefix: /users/s/e/seyoun/tools/VerifyBamID_2.0.1/resource/exome/1000g.phase3.10k.b38.exome.vcf.gz.dat
 verifybamid_ref_fa: /proj/phanstiel_lab/Reference/human/hg38/fasta/GRCh38.primary_assembly.genome.fa
 
 ## rMATS options
 t: 'paired'
-readlength: 100
-control: 'hESC'
-case: 'NPC' # or the Neurons
+readlength: 150
+novelSS: 'FALSE'
+comparison_group:
+  - [norm_PBS, norm_DOXO]
+  - [hypo_PBS, hypo_DOXO]
 
 ## salmon options
 #gcBias: 'TRUE'
@@ -57,3 +63,4 @@ salmonVers: "1.10.3"
 picardVers: '3.4.0'
 javaVers: '23.0.2'
 subreadVers: '2.1.1'
+rmats_turboVer: '4.3.0'

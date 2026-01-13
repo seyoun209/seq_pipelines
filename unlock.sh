@@ -18,6 +18,12 @@ case $1 in
         '01_run_RNA_preprocess.sbatch')
             snakemake -j 1 --unlock -s workflow/rna_process/01_rna_preprocess.smk --configfile config/RNA_config.yaml --profile config/profile_slurm_rna
             ;;
+	'02_RNAmergeSignal.sbatch')
+		snakemake -j 1 --unlock -s workflow/rna_process/02_mergeSignal.smk --configfile config/RNA_config.yaml --profile config/profile_slurm_rna
+		;;
+        '03_RNA_rmats.sbatch')
+                snakemake -j 1 --unlock -s workflow/rna_process/03_rmats.smk --configfile config/RNA_config.yaml --profile config/profile_slurm_rna
+                ;;
     '01_02_run_atac_peakcall.sbatch')
             snakemake -j 1 --unlock -s workflow/atac_process/02_02_wasp_callingPeak.smk  --configfile config/ATAC_config.yaml --profile config/profile_slurm_atac
             ;;

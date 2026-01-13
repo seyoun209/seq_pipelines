@@ -218,17 +218,17 @@ rule align:
 
         STAR --genomeDir {params.index} \
                 --runThreadN {threads} \
-                --sjdbFileChrStartEnd {params.sjdb} \
+                --twopassMode Basic \
                 --outFileNamePrefix {params.dir_align} \
                 --outSAMstrandField intronMotif \
+                --alignEndsType EndToEnd \
                 --readFilesCommand zcat \
                 --outSAMtype BAM SortedByCoordinate \
                 --readFilesIn {input.R1} {input.R2} \
                 --outFilterType BySJout \
-                --outFilterMultimapNmax 20 \
+                --outSAMattributes NH HI AS NM MD XS \
                 --alignSJoverhangMin 8 \
                 --alignSJDBoverhangMin 1 \
-                --outFilterMismatchNmax 999 \
                 --outFilterMismatchNoverReadLmax 0.04 \
                 --alignIntronMin 20 \
                 --alignIntronMax 1000000 \
@@ -281,8 +281,8 @@ rule qualimap_bamqc:
         gtf = config['gtf'],
         outdir = "rna_output/QC/qualimap/{sampleName}_bamqc",
         qualimap_ver = config['qualimapVers'],
-        java_mem = config.get('java_mem', '16G')
-    threads: 4
+        java_mem = config.get('java_mem', '10G')
+    threads: 10
     log:
         err = 'rna_output/logs/qualimap_bamqc_{sampleName}.err',
         out = 'rna_output/logs/qualimap_bamqc_{sampleName}.out'
@@ -307,8 +307,8 @@ rule qualimap_rnaseq:
         gtf = config['gtf'],
         outdir = "rna_output/QC/qualimap/{sampleName}_rnaseq",
         qualimap_ver = config['qualimapVers'],
-        java_mem = config.get('java_mem', '16G')
-    threads: 4
+        java_mem = config.get('java_mem', '40G')
+    threads: 8
     log:
         err = 'rna_output/logs/qualimap_rnaseq_{sampleName}.err',
         out = 'rna_output/logs/qualimap_rnaseq_{sampleName}.out'
@@ -366,7 +366,7 @@ rule featurecounts:
     benchmark:
         "rna_output/benchmarks/featurecounts_{sampleName}.tsv"
     shell:
-        r"""
+        """
         module load subread/{params.subread_ver}
         mkdir -p rna_output/featurecounts
 
@@ -457,7 +457,7 @@ rule verifybamid:
         out = "rna_output/logs/verifybamid_{sampleName}.out",
         err = "rna_output/logs/verifybamid_{sampleName}.err"
     shell:
-        r"""
+        """
         mkdir -p rna_output/QC/verifybam
 
         {params.vb} \
@@ -489,7 +489,7 @@ rule signal:
         module load deeptools/{params.deeptools_ver}
         mkdir -p rna_output/signals/indiv rna_output/signals/norm_indiv
         
-        bamCoverage --bam {input.bam} --binSize {params.binSize} --samFlagExclude 256 -o {output.signal} > log.err 2>&1
+        bamCoverage --bam {input.bam} --binSize {params.binSize} --samFlagExclude 256 -o {output.signal} > {log.err} 2>&1
         
         bamCoverage --normalizeUsing {params.NormOption} \
                 --bam {input.bam} -o {output.norm_sig} \
