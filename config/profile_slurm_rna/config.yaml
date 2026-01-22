@@ -7,26 +7,59 @@ keep-going: true
 executor: cluster-generic
 default-resources:
   memPerCpu: 4G
+  slurm_time: "'3-00:00:00'"
+  cpus_per_task: '2'
 
 set-resources:
   align:
-    memPerCpu: 100G
+    cpus_per_task: '4'
+    memPerCpu: 150G
+    slurm_time: "'6-00:00:00'"
+  sort_index:
+    cpus_per_task: '4'
+    memPerCpu: 250G
   trim:
     memPerCpu: 8G
   qualimap_bamqc:
-    memPerCpu: 20G
+    cpus_per_task: '8'
+    memPerCpu: 75G
   qualimap_rnaseq:
-    memPerCpu: 20G
+    cpus_per_task: '8'
+    memPerCpu: 45G
   quant:
-    memPerCpu: 10G
+    memPerCpu: 30G
+
+  verifybamid:
+    memPerCpu: 15G
+    slurm_time: "'11-00:00:00'"  
+  
+  mergeSignal:
+    memPerCpu: 8G
+    slurm_time: "'11-00:00:00'"
+  
+  mergeForwardSignal:
+    memPerCpu: 16G
+    slurm_time: "'11-00:00:00'"
+
+  mergeReverseSignal:
+    memPerCpu: 16G
+    slurm_time: "'11-00:00:00'"
+
+  mergeSignal_norm:
+    memPerCpu: 8G
+    slurm_time: "'11-00:00:00'"
+
+  rmats:
+    cpus_per_task: '16'
+    memPerCpu: 100G
 
 cluster-generic-submit-cmd: >-
   sbatch
   -J {rule}-{wildcards}
   -p general
-  -t 3-00:00:00
-  -c {threads}
-  --mem={resources.memPerCpu}
+  -t {resources.slurm_time}
+  -c {resources.cpus_per_task}
+  --mem {resources.memPerCpu}
   -o rna_output/logs_slurm/{rule}-%j.out
   -e rna_output/logs_slurm/{rule}-%j.err
   --parsable

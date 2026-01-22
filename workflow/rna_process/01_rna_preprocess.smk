@@ -39,22 +39,28 @@ rule all:
         "rna_output/QC/trimmed/multiqc_report.html",
     # Alignment outputs (genome and transcriptome)
         expand("rna_output/align/{sampleName}_Aligned.out.bam",sampleName=read1.keys()),
-        expand("rna_output/align/{sampleName}_Aligned.toTranscriptome.out.bam",sampleName=read1.keys()),
+        expand("rna_output/align/{sampleName}_Log.final.out",sampleName=read1.keys()),
     # Sorted/indexed BAMs
         expand("rna_output/align/{sampleName}_sorted.bam",sampleName=read1.keys()),
-        expand("rna_output/align/{sampleName}_sorted.bai",sampleName=read1.keys()),
+        expand("rna_output/align/{sampleName}_sorted.bam.bai",sampleName=read1.keys()),
+    # Salmon quantification
+        [expand('rna_output/quant/{sampleName}',sampleName=read1.keys())],
+    # Featurecounts
+        expand("rna_output/featurecounts/{sampleName}_counts.txt",sampleName=read1.keys()),
+        expand("rna_output/featurecounts/{sampleName}_counts.txt.summary",sampleName=read1.keys()),
     # Flagstat
         expand("rna_output/align/{sampleName}_sorted.flagstat",sampleName=read1.keys()),
-    # Salmon quantification
-        expand('rna_output/quant/{sampleName}/quant.sf',sampleName=read1.keys()),
     # Qualimap reports
         expand("rna_output/QC/qualimap/{sampleName}_bamqc/qualimapReport.html",sampleName=read1.keys()),
-        expand("rna_output/QC/qualimap/{sampleName}_rnaseq/qualimapReport.html",sampleName=read1.keys())
-#    # VerifyBamID2 outputs
-#    expand("rna_output/verifyBamID/{sampleName}.selfSM", sampleName=read1.keys()),
-#    # Signal tracks
-#    expand("rna_output/signals/no_norm_indv/{sampleName}.bw",sampleName=read1.keys()),
-#   expand("rna_output/signals/norm_indv/{sampleName}.bw",sampleName=read1.keys())
+        expand("rna_output/QC/qualimap/{sampleName}_rnaseq/qualimapReport.html",sampleName=read1.keys()),
+    # add readgroup
+        expand("rna_output/align/{sampleName}_RG.bam",sampleName=read1.keys()),
+        expand("rna_output/align/{sampleName}_RG.bam.bai",sampleName=read1.keys()),
+    # VerifyBamID2 outputs
+        expand("rna_output/QC/verifybam/{sampleName}.selfSM", sampleName=read1.keys()),
+    # Signal tracks
+        expand("rna_output/signals/indiv/{sampleName}.bw",sampleName=read1.keys()),
+        expand("rna_output/signals/norm_indiv/{sampleName}.bw",sampleName=read1.keys())
 
 
 rule catReads:
@@ -186,24 +192,21 @@ rule multiqc_trimmed:
         module load multiqc/{params.multiqc_ver}
         multiqc {params.indir} -o {params.outdir} 1> {log.out} 2> {log.err}
         """
+
 rule align:
     input:
         R1 = rules.trim.output.trim1,
         R2 = rules.trim.output.trim2
     output:
         genome_bam = "rna_output/align/{sampleName}_Aligned.out.bam",
-        transcriptome_bam = "rna_output/align/{sampleName}_Aligned.toTranscriptome.out.bam",
-        log_out = "rna_output/align/{sampleName}_Log.out",
-        progress_log = "rna_output/align/{sampleName}_Log.progress.out",
-        final_log = "rna_output/align/{sampleName}_Log.final.out",
-        sj_tab = "rna_output/align/{sampleName}_SJ.out.tab"
+        log_final = "rna_output/align/{sampleName}_Log.final.out"
     threads: 8
     log:
         err = 'rna_output/logs/align_{sampleName}.err',
         out = 'rna_output/logs/align_{sampleName}.out'
     params:
         index = config['star'],
-        gtf = config['gtf'],
+        sjdb = config['starsjdb'],
         starVer = config['starVers'],
         dir_align = "rna_output/align/{sampleName}_"
     benchmark:
@@ -212,33 +215,33 @@ rule align:
         """
         ml star/{params.starVer}
         mkdir -p rna_output/align
-        
+
         STAR --genomeDir {params.index} \
                 --runThreadN {threads} \
-                --sjdbGTFfile {params.gtf} \
+                --twopassMode Basic \
                 --outFileNamePrefix {params.dir_align} \
+                --outSAMstrandField intronMotif \
+                --alignEndsType EndToEnd \
                 --readFilesCommand zcat \
                 --outSAMtype BAM Unsorted \
                 --readFilesIn {input.R1} {input.R2} \
                 --outFilterType BySJout \
+                --outSAMattributes NH HI AS NM MD XS \
                 --alignSJoverhangMin 8 \
-                --outFilterMultimapNmax 20 \
                 --alignSJDBoverhangMin 1 \
-                --outFilterMismatchNmax 999 \
                 --outFilterMismatchNoverReadLmax 0.04 \
                 --alignIntronMin 20 \
                 --alignIntronMax 1000000 \
-                --alignMatesGapMax 1000000 \
-                --quantMode TranscriptomeSAM \
-                --outSAMattributes NH HI AS NM MD 1> {log.out} 2> {log.err}
+                --alignMatesGapMax 1000000 1> {log.out} 2> {log.err}
         """
+
 rule sort_index:
     input:
-        rules.align.output.genome_bam
+        genome_bam = rules.align.output.genome_bam
     output:
         bam = 'rna_output/align/{sampleName}_sorted.bam',
-        bai = 'rna_output/align/{sampleName}_sorted.bai'
-    threads: 8
+        bai = 'rna_output/align/{sampleName}_sorted.bam.bai'
+    threads: 4
     params:
         samtoolsVersion = config['samtoolsVers']
     log:
@@ -249,7 +252,7 @@ rule sort_index:
     shell:
         """
         module load samtools/{params.samtoolsVersion}
-        samtools sort -@ {threads} {input} -o {output.bam} 2> {log.err}
+        samtools sort -@ {threads} -m 55G {input.genome_bam} -o {output.bam} 2> {log.err}
         samtools index -@ {threads} {output.bam} 2>> {log.err}
         """
 
@@ -278,8 +281,8 @@ rule qualimap_bamqc:
         gtf = config['gtf'],
         outdir = "rna_output/QC/qualimap/{sampleName}_bamqc",
         qualimap_ver = config['qualimapVers'],
-        java_mem = config.get('java_mem', '16G')
-    threads: 4
+        java_mem = config.get('java_mem', '50G')
+    threads: 7
     log:
         err = 'rna_output/logs/qualimap_bamqc_{sampleName}.err',
         out = 'rna_output/logs/qualimap_bamqc_{sampleName}.out'
@@ -304,8 +307,8 @@ rule qualimap_rnaseq:
         gtf = config['gtf'],
         outdir = "rna_output/QC/qualimap/{sampleName}_rnaseq",
         qualimap_ver = config['qualimapVers'],
-        java_mem = config.get('java_mem', '16G')
-    threads: 4
+        java_mem = config.get('java_mem', '40G')
+    threads: 8
     log:
         err = 'rna_output/logs/qualimap_rnaseq_{sampleName}.err',
         out = 'rna_output/logs/qualimap_rnaseq_{sampleName}.out'
@@ -322,18 +325,18 @@ rule qualimap_rnaseq:
 
 rule quant:
     input:
-        transcriptome_bam = rules.align.output.transcriptome_bam
+        R1 = rules.trim.output.trim1,
+        R2 = rules.trim.output.trim2
     output:
-        quant = 'rna_output/quant/{sampleName}/quant.sf',
-        quant_genes = 'rna_output/quant/{sampleName}/quant.genes.sf'
+        directory('rna_output/quant/{sampleName}')
     params:
         salmonVer = config['salmonVers'],
         index = config['salmon'],
         outdir = 'rna_output/quant/{sampleName}',
         lib_type = config['libtype']
     log:
-        out = 'rna_output/logs/salmon_{sampleName}.out',
-        err = 'rna_output/logs/salmon_{sampleName}.err'
+        out = 'rna_output/logs/quant_{sampleName}.out',
+        err = 'rna_output/logs/quant_{sampleName}.err'
     threads: 8
     benchmark:
         'rna_output/benchmarks/salmon_{sampleName}.tsv'
@@ -341,20 +344,79 @@ rule quant:
         """
         ml salmon/{params.salmonVer}
         mkdir -p rna_output/quant
-        salmon quant -t {params.index} -l {params.lib_type} \
-            -a {input.transcriptome_bam} -o {params.outdir} \
-            -p {threads} --seqBias --gcBias 1> {log.out} 2> {log.err}
+        salmon quant -i {params.index} -l {params.lib_type} -1 {input.R1} -2 {input.R2} -o rna_output/quant/{wildcards.sampleName} --seqBias --gcBias --validateMappings 1> {log.out} 2> {log.err}
         """
+        
+rule featurecounts:
+    input:
+        bam = rules.sort_index.output.bam,
+        bai = rules.sort_index.output.bai
+    output:
+        counts = "rna_output/featurecounts/{sampleName}_counts.txt",
+        summary = "rna_output/featurecounts/{sampleName}_counts.txt.summary"
+    params:
+        subread_ver = config["subreadVers"],
+        gtf = config['collapse_gtf'],
+        featuretype = config["featureType"],
+        attrtype = config["attrType"]
+    threads: 8
+    log:
+        out = "rna_output/logs/featurecounts_{sampleName}.out",
+        err = "rna_output/logs/featurecounts_{sampleName}.err"
+    benchmark:
+        "rna_output/benchmarks/featurecounts_{sampleName}.tsv"
+    shell:
+        """
+        module load subread/{params.subread_ver}
+        mkdir -p rna_output/featurecounts
+
+        featureCounts \
+          -T {threads} \
+          -p -B -C -s 0 \
+          -t {params.featuretype} \
+          -g {params.attrtype} \
+          -a {params.gtf} \
+          -o {output.counts} \
+          {input.bam} \
+          1> {log.out} 2> {log.err}
+        """
+
+#rule quant:
+#    input:
+#        transcriptome_bam = rules.sort_index.output.sort_transBam
+#    output:
+#        quant = 'rna_output/quant/{sampleName}/quant.sf',
+#    params:
+#        salmonVer = config['salmonVers'],
+#        index = config['salmon'],
+#        outdir = 'rna_output/quant/{sampleName}',
+#        lib_type = config['libtype']
+#    log:
+#        out = 'rna_output/logs/salmon_{sampleName}.out',
+#        err = 'rna_output/logs/salmon_{sampleName}.err'
+#    threads: 8
+#    benchmark:
+#        'rna_output/benchmarks/salmon_{sampleName}.tsv'
+#    shell:
+#        """
+#        ml salmon/{params.salmonVer}
+#        mkdir -p rna_output/quant
+#        salmon quant -t {params.index} -l {params.lib_type} \
+#            -a {input.transcriptome_bam} -o {params.outdir} \
+#            -p {threads} --seqBias --gcBias 1> {log.out} 2> {log.err}
+#        """
+
 rule add_read_groups:
     input:
         bam = rules.sort_index.output.bam,
         bai = rules.sort_index.output.bai
     output:
-        bam = temp("rna_output/align/{sampleName}_RG.bam"),
-        bai = temp("rna_output/align/{sampleName}_RG.bam.bai")
+        bam = "rna_output/align/{sampleName}_RG.bam",
+        bai = "rna_output/align/{sampleName}_RG.bam.bai"
     params:
-        picard_version = config["picardVers"],
-        samtools_version = config["samtoolsVers"]
+        picard_ver = config["picardVers"],
+        samtools_ver = config["samtoolsVers"],
+        java_ver = config ['javaVers']
     threads: 4
     log:
         err = "rna_output/logs/add_read_groups_{sampleName}.err",
@@ -363,13 +425,15 @@ rule add_read_groups:
         'rna_output/benchmarks/add_read_groups_{sampleName}.tsv'
     shell:
         """
-        module load picard/{params.picard_version}
-        module load samtools/{params.samtools_version}
+        module load picard/{params.picard_ver}
+        module load samtools/{params.samtools_ver}
+        module load java/{params.java_ver}
 
         picard AddOrReplaceReadGroups \
             I={input.bam} \
             O={output.bam} \
             RGSM={wildcards.sampleName} \
+            RGID={wildcards.sampleName} \
             RGPL=ILLUMINA \
             RGLB=lib1 \
             RGPU=unit1 \
@@ -377,3 +441,61 @@ rule add_read_groups:
 
         samtools index {output.bam} 1>> {log.out} 2>> {log.err}
         """
+
+rule verifybamid:
+    input:
+        bam = rules.add_read_groups.output.bam,
+        bai = rules.add_read_groups.output.bai
+    output:
+        selfSM = "rna_output/QC/verifybam/{sampleName}.selfSM"
+    params:
+        vb = config["verifybamid_bin"],
+        svd = config["verifybamid_svdprefix"],
+        ref = config["verifybamid_ref_fa"]
+    threads: 4
+    log:
+        out = "rna_output/logs/verifybamid_{sampleName}.out",
+        err = "rna_output/logs/verifybamid_{sampleName}.err"
+    shell:
+        """
+        mkdir -p rna_output/QC/verifybam
+
+        {params.vb} \
+          --BamFile {input.bam} \
+          --SVDPrefix {params.svd} \
+          --Reference {params.ref} \
+          --NumThread {threads} \
+          --Output rna_output/QC/verifybam/{wildcards.sampleName} \
+          1> {log.out} 2> {log.err}
+        """
+
+rule signal:
+    input:
+        bam = rules.sort_index.output.bam,
+        bai = rules.sort_index.output.bai
+    output:
+        signal = "rna_output/signals/indiv/{sampleName}.bw",
+        norm_sig = "rna_output/signals/norm_indiv/{sampleName}.bw"    
+    threads: 4
+    log:
+        err = 'rna_output/logs/indiv_signal_{sampleName}.err',
+        err_norm = 'rna_output/logs/indiv_CPMsignal_{sampleName}.err'
+    params:
+        deeptools_ver=config['deeptoolsVers'],
+        NormOption=config['normalize_option'],
+        binSize=config['bin_size']
+    shell:
+        """
+        module load deeptools/{params.deeptools_ver}
+        mkdir -p rna_output/signals/indiv rna_output/signals/norm_indiv
+        
+        bamCoverage --bam {input.bam} --binSize {params.binSize} --samFlagExclude 256 -o {output.signal} > {log.err} 2>&1
+        
+        bamCoverage --normalizeUsing {params.NormOption} \
+                --bam {input.bam} -o {output.norm_sig} \
+                --binSize {params.binSize} \
+                --samFlagExclude 256 \
+                --numberOfProcessors {threads} > {log.err_norm} 2>&1
+
+        """
+

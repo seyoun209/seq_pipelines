@@ -1,0 +1,11 @@
+env/
+*.txt
+external/*
+atac_output/*
+rna_output/*
+geno_output/*
+hic_output/*
+workflow_logs/*
+.vscode/*
+*.err
+*.out

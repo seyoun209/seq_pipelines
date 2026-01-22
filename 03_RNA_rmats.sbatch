@@ -1,5 +1,5 @@
 #! /bin/bash -login
-#SBATCH -J rna_preprocess
+#SBATCH -J rna_rmats
 #SBATCH -t 11-00:00:00
 #SBATCH -N 1
 #SBATCH -n 1
@@ -23,12 +23,9 @@ source env/bin/activate && pip3 install -r config/requirements.txt
 mkdir -p rna_output/logs_slurm workflow_logs
 
 #Run
-snakemake -s workflow/rna_process/01_rna_preprocess.smk \
+snakemake -s workflow/rna_process/03_rmats.smk \
   --configfile config/RNA_config.yaml \
   --profile config/profile_slurm_rna \
-  -j 120 --max-jobs-per-second 10 --slurm-init-seconds-before-status-checks 30 --max-status-checks-per-second 0.5 \
-  --rerun-incomplete -p --latency-wait 150
-
-
-
+  -j 50 --max-jobs-per-second 10 --slurm-init-seconds-before-status-checks 30 --max-status-checks-per-second 0.5 \
+  --rerun-incomplete -p --latency-wait 30
 
