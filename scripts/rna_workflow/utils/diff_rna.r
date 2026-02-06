@@ -49,38 +49,6 @@ write_GO_table <- function(go_df) {
 # GO barplot function
 
 gg_GO_barplot <- function(df,fill_colors,title = "GO Terms") {
-  ggplot(df, aes(x = `-log10pval`, y = parentTerm, fill = category)) +
-    geom_vline(xintercept = 10, color = "grey75", alpha = 0.8) +
-    geom_vline(xintercept = 20, color = "grey75", alpha = 0.8) +
-    geom_vline(xintercept = 30, color = "grey75", alpha = 0.8) +
-    geom_vline(xintercept = 40, color = "grey75", alpha = 0.8) +
-    geom_vline(xintercept = 50, color = "grey75", alpha = 0.8) +
-    geom_bar(stat = "identity") +
-    scale_x_continuous(limits = c(0, 51), expand = c(0, 0), name = "-log~10~pval",
-                     breaks = seq(0, 50, 10)) +
-    scale_fill_manual(values = fill_colors) +
-    facet_wrap(~category, ncol = 1, strip.position = "left", scales = "free_y",dir = "v") +
-    geom_text(aes(x = 0, label = parentTerm), hjust = 0, family = "Helvetica",
-            size = 2) +
-    theme(panel.background = element_rect(fill = 'transparent', color = "transparent"),
-        plot.background = element_rect(fill = 'transparent', color = "transparent"),
-        text = element_text(family = "Helvetica"),
-        legend.position = "None",
-        axis.text.y = element_blank(),
-        axis.title.y = element_blank(),
-        axis.title.x = element_markdown(size = 6),
-        axis.text.x = element_text(color = "black", size = 4),
-        strip.background = element_blank(),
-        axis.ticks = element_blank(),
-        axis.line.x = element_line(linewidth = 0.25),
-        strip.text = element_text(size = 8, color = "black"),
-        panel.spacing = unit(0, "mm"),
-        plot.title = element_text(hjust = 0.5, face = "bold", size = 8)) + 
-    ggtitle(title)
-}
-
-
-kegg_barplot <- function(df, fill_colors, title = "Pathways") {
   ggplot(df, aes(x = `-log10pval`, y = Term_unique, fill = category)) +
     geom_vline(xintercept = 2, color = "grey95", alpha = 0.4) +
     geom_vline(xintercept = 4, color = "grey95", alpha = 0.4) +
@@ -92,6 +60,41 @@ kegg_barplot <- function(df, fill_colors, title = "Pathways") {
     scale_x_continuous(limits = c(0, 13), expand = c(0, 0), 
                        name = "-log~10~pval",
                        breaks = seq(0, 12, 2)) +
+    scale_fill_manual(values = fill_colors) +
+facet_wrap(~category, ncol = 1, strip.position = "left", 
+               scales = "free_y") + 
+    geom_text(aes(x = 0, label = Term), hjust = 0, family = "Helvetica",
+              size = 2) +  # Still display original Term name
+    theme(panel.background = element_rect(fill = 'transparent', color = "transparent"),
+          plot.background = element_rect(fill = 'transparent', color = "transparent"),
+          text = element_text(family = "Helvetica"),
+          legend.position = "None",
+          axis.text.y = element_blank(),
+          axis.title.y = element_blank(),
+          axis.title.x = element_markdown(size = 6),
+          axis.text.x = element_text(color = "black", size = 4),
+          strip.background = element_blank(),
+          axis.ticks = element_blank(),
+          axis.line.x = element_line(linewidth = 0.25),
+          strip.text = element_text(size = 8, color = "black"),
+          panel.spacing = unit(0, "mm"),
+          plot.title = element_text(hjust = 0.5, face = "bold", size = 8)) + 
+    ggtitle(title)
+}
+
+
+kegg_barplot <- function(df, fill_colors, title = "Pathways") {
+  ggplot(df, aes(x = `-log10pval`, y = Term_unique, fill = category)) +
+    geom_vline(xintercept = 2, color = "grey95", alpha = 0.4) +
+    geom_vline(xintercept = 4, color = "grey95", alpha = 0.4) +
+    #geom_vline(xintercept = 6, color = "grey95", alpha = 0.4) +
+    #geom_vline(xintercept = 8, color = "grey95", alpha = 0.4) +
+    #geom_vline(xintercept = 10, color = "grey95", alpha = 0.4) +
+    #geom_vline(xintercept = 12, color = "grey95", alpha = 0.4) +
+    geom_bar(stat = "identity") +
+    scale_x_continuous(limits = c(0, 5), expand = c(0, 0), 
+                       name = "-log~10~pval",
+                       breaks = seq(0, 4, 2)) +
     scale_fill_manual(values = fill_colors) +
 facet_wrap(~category, ncol = 1, strip.position = "left", 
                scales = "free_y") + 
